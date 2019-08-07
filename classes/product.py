@@ -27,9 +27,9 @@ class Product:
         -the store where his sale"""
 	
 
-    def __init__(self, login):
-        self.login = login
-        self.url = 'https://fr.openfoodfacts.org/api/v0/produit/'+login+'.json'
+    def __init__(self, reference):
+        self.reference = reference
+        self.url = 'https://fr.openfoodfacts.org/api/v0/produit/'+reference+'.json'
         self.name = ""
         self.brand = ""
         self.ingredients = ""
@@ -96,4 +96,56 @@ class Product:
 
 
     def save_data(self):
-        pass
+        product_id = 0
+        categories_id = []
+        stores_id = []
+
+        connection = mysql.connector.connect(
+                host="localhost", 
+                user="root", password = "doni88650",
+                database = "OpenFoodFact")
+
+        cursor = connection.cursor()
+
+        product = (self.reference, self.url, self.name, self.brand,
+                self.ingredients, self.labels, self.saturated_fat, self.fat,
+                self.sugar, self.allergens, self.nutriscore)
+
+        cursor.execute("""INSERT INTO Product (reference, url,\
+                name, brand, ingredients, labels, saturated_fat, fat,\
+                salt, sugar, allergens, nutriscore)\
+                VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                product)
+
+        product_id = cursor.lastrowid
+
+        for element in self.list_of_category:
+            category = (element.name, element.url)
+
+            cursor.execute("""INSERT INTO Categories (name, url)\
+                    VALUES (%s, %s)""", category)
+            
+            categories_id.append(cursor.lastrowid)
+
+        for element in self.list_of_store:
+            store = (element.name, element.localisation)
+            
+            cursor.execute("""INSERT INTO Store (name, localisation)\
+                    VALUES (%s, %s)""", store)
+
+            stores_id.append(cursor.lastrowid)
+
+
+        for category_id in categories_id:
+            association = (category_id, product_id)
+
+            cursor.execute("""INSERT INTO Association_product_category\
+                    (pfk_category_id, pfk_product_id)\
+                    VALUES (%s, %s)""", association)
+
+        for store_id in stores_id:
+            association = (store_id, product_id)
+
+            cursor.execute("""INSERT INTO Association_product_store\
+                    pfk_store_id, pfk_product_id)\
+                    VALUES (%s, %s)""", association)

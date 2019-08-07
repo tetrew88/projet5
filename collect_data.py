@@ -19,6 +19,8 @@ while main_product_counter < 20:
         
         match_references.append(main_reference)
 
+        main_product.save_data()
+
         reference2 = 7131
         same_category_counter = 1
         while same_category_counter < 5:
@@ -28,7 +30,6 @@ while main_product_counter < 20:
 
             if product2.collect_data() == True:
                 category_match = False
-                #print("reference2: " + str(reference2))
 
 
                 for category in main_product.list_of_category:
@@ -39,6 +40,7 @@ while main_product_counter < 20:
 
                     if category_match == True:
                         match_references.append(reference2)
+                        product2.save_data()
                         same_category_counter += 1
                         print("y = " + str(same_category_counter))
                         break
@@ -47,3 +49,6 @@ while main_product_counter < 20:
             
                         
     main_reference += 1
+
+
+print("collect finish")
