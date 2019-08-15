@@ -102,20 +102,25 @@ class Product:
 
         connection = mysql.connector.connect(
                 host="localhost", 
-                user="root", password = "doni88650",
+                user="donovan", password = "doni88650",
                 database = "OpenFoodFact")
 
         cursor = connection.cursor()
+        
+        print("connection a la base de donnée éffectuer\n")
 
-        product = (self.reference, self.url, self.name, self.brand,
-                self.ingredients, self.labels, self.saturated_fat, self.fat,
-                self.sugar, self.allergens, self.nutriscore)
-
-        cursor.execute("""INSERT INTO Product (reference, url,\
-                name, brand, ingredients, labels, saturated_fat, fat,\
-                salt, sugar, allergens, nutriscore)\
-                VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                product)
+        product = (self.reference, self.url, self.name, self.brand, 
+                self.ingredients, self.labels, self.saturated_fat,
+                self.fat, self.salt, self.sugar, self.allergens, self.nutriscore
+                )
+        
+        product_insertion = "INSERT INTO Product(reference, url, name,brand,\
+                        ingredients,labels, saturated_fat, fat,salt,sugar,\
+                        allergens, nutriscore)\
+                        VALUES\
+                        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        
+        cursor.execute(product_insertion, product)
 
         product_id = cursor.lastrowid
 
@@ -147,5 +152,12 @@ class Product:
             association = (store_id, product_id)
 
             cursor.execute("""INSERT INTO Association_product_store\
-                    pfk_store_id, pfk_product_id)\
+                    (pfk_store_id, pfk_product_id)\
                     VALUES (%s, %s)""", association)
+
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+
+        print("product {} added to the database\n".format(self.name))

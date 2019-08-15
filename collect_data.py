@@ -11,6 +11,7 @@ category_match = False
 
 main_product_counter = same_category_counter = 0
 
+#main loop
 while main_product_counter < 20:
     main_product = Product(str(main_reference))
    
@@ -21,14 +22,14 @@ while main_product_counter < 20:
 
         main_product.save_data()
 
+
         reference2 = 7131
         same_category_counter = 1
         while same_category_counter < 5:
             product2 = Product(str(reference2))
             
-            print("reference2: " + str(reference2))
-
-            if product2.collect_data() == True:
+            if product2.collect_data() == True and \
+                    reference2 not in match_references:
                 category_match = False
 
 
@@ -46,7 +47,7 @@ while main_product_counter < 20:
                         break
 
             reference2 += 1
-            
+
                         
     main_reference += 1
 
