@@ -10,7 +10,7 @@ from classes.store import *
 
 class Product:
     """class designed a product by:
-	-his login
+	-his reference
 	-his name
 	-his brand
 	-his ingredient
@@ -29,7 +29,9 @@ class Product:
 
     def __init__(self, reference):
         self.reference = reference
-        self.url = 'https://fr.openfoodfacts.org/api/v0/produit/'+reference+'.json'
+        self.url = 'https://fr.openfoodfacts.org/api/v0/produit/'+\
+                reference+'.json'
+
         self.name = ""
         self.brand = ""
         self.ingredients = ""
@@ -48,46 +50,111 @@ class Product:
     def collect_data(self):
         """method for collect the data from openfoodfact"""
         
+        #load data in a dictionnary
         data = requests.get(self.url)
         data = json.loads(data.text)
 
+        #if the product was not found in off database
         if data['status_verbose'] == 'product not found':
             return False
 
         data = data['product']
 
+
+        #collecte au data in the main class 
         try:
+            #try to find name in french primaly
             try:
                 self.name = data['product_name_fr']
+            #else collect general product name
             except KeyError:
                 self.name = data['product_name']
 
-            self.brand = data['brands']
+
+            if data['brands'] == "":
+                self.brand = "NULL"
+            else:
+                self.brand = data['brands']
             
+
+            #try to collect ingredient in french primaly
             try:
-                self.ingredients = data['ingredients_text_fr']
+                if data['ingredients_text_fr'] == "":
+                    self.ingredients = "NULL"
+                else:
+                    self.ingredients = data['ingredients_text_fr']
+
+            #else collecte general ingredients
             except KeyError:
-                self.ingredients = data['ingredients_text']
+                if data['ingredients_text'] == "":
+                    self.ingredients = "NULL"
+                else:
+                    self.ingredients = data['ingredients_text']
+           
+
+            if data['labels'] == '':
+                self.labels = "NULL"
+            else:
+                self.labels = data['labels']
             
-            self.labels = data['labels']
-            self.satured_fat = data['nutrient_levels']['saturated-fat']
-            self.fat = data['nutrient_levels']['fat']
-            self.salt = data['nutrient_levels']['salt']
-            self.sugar = data['nutrient_levels']['sugars']
-            self.allergens = data['ingredients_text_with_allergens']
-            self.nutriscore = data['nutriments']['nutrition-score-fr']
+            if data['nutrient_levels']['saturated-fat'] == "":
+                self.saturated_fat = "NULL"
+            else:
+                self.satured_fat = data['nutrient_levels']['saturated-fat']
+            
+            if data['nutrient_levels']['fat'] == "":
+                self.fat = "NULL"
+            else:
+                self.fat = data['nutrient_levels']['fat']
 
+            if data['nutrient_levels']['salt'] == "":
+                self.salt = "NULL"
+            else:
+                self.salt = data['nutrient_levels']['salt']
+            
+            if data['nutrient_levels']['sugars'] == '':
+                self.sugar = 'NULL'
+            else:
+                self.sugar = data['nutrient_levels']['sugars']
+            
+            if data['ingredients_text_with_allergens'] == '':
+                self.allergens = "NULL"
+            else:
+                self.allergens = data['ingredients_text_with_allergens']
+            
+            if data['nutriments']['nutrition-score-fr'] == '':
+                return False
+            else:
+                self.nutriscore = data['nutriments']['nutrition-score-fr']
 
+            
+            #for each category in categories
             for category in data['categories'].split(','):
+                #check if the first element of the string was ' '
                 if category[0] == " ":
+                    #if it was, delete the first element
                     category = category[1:]
 
+                #add each category to the list_of_category
                 self.list_of_category.append(Category(category))
 
+            #collect all the data of the store and purchase place
+            for store in data['stores'].split(','):
+                if data['purchase_places'] == "":
+                    self.list_of_store.append(Store("NULL", store))
 
-            for purchase_place in data['purchase_places'].split(','):
-                for store in data['stores'].split(','):
-                    self.list_of_store.append(Store(purchase_place, store))
+                elif data['purchase_places'] != "" and store != "":
+                    self.list_of_store.append(Store(data['purchase_places'], 
+                        store))
+                
+                elif data['purchase_places'] != "" and store == "":
+                    self.list_of_store.append(Store(data['purchase_places'],
+                        "NULL"))
+                
+                elif data['purchase_places'] == "" and store == "":
+                    self.list_of_store.append(Store("NULL" ,"NULL"))
+
+
 
         except KeyError:
             return False
@@ -101,63 +168,66 @@ class Product:
         stores_id = []
 
         connection = mysql.connector.connect(
-                host="localhost", 
-                user="donovan", password = "doni88650",
+                host="*****", 
+                user="*****", password = "*****",
                 database = "OpenFoodFact")
 
         cursor = connection.cursor()
         
-        print("connection a la base de donnée éffectuer\n")
+        print("Add {} to the database\n".format(self.name))
 
-        product = (self.reference, self.url, self.name, self.brand, 
-                self.ingredients, self.labels, self.saturated_fat,
-                self.fat, self.salt, self.sugar, self.allergens, self.nutriscore
-                )
-        
-        product_insertion = "INSERT INTO Product(reference, url, name,brand,\
-                        ingredients,labels, saturated_fat, fat,salt,sugar,\
-                        allergens, nutriscore)\
-                        VALUES\
-                        (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-        
-        cursor.execute(product_insertion, product)
+        cmd_sql = "SELECT * FROM Product WHERE reference = " + self.reference
 
-        product_id = cursor.lastrowid
+        cursor.execute(cmd_sql)
 
-        for element in self.list_of_category:
-            category = (element.name, element.url)
+        reponse = cursor.fetchall()
+        if len(reponse) == 0:
+            product = (self.reference, self.url, self.name, self.brand, 
+                    self.ingredients, self.labels, self.saturated_fat,
+                    self.fat, self.salt, self.sugar, self.allergens,
+                    self.nutriscore)
 
-            cursor.execute("""INSERT INTO Categories (name, url)\
-                    VALUES (%s, %s)""", category)
+
+            cursor.execute("INSERT INTO Product(reference, url, name,brand,\
+                    ingredients,labels, saturated_fat, fat,\
+                    salt,sugar, allergens, nutriscore)\
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    product)
             
-            categories_id.append(cursor.lastrowid)
+            product_id = cursor.lastrowid
 
-        for element in self.list_of_store:
-            store = (element.name, element.localisation)
+
+            for category in self.list_of_category:
+                if category.save_data(cursor) == True:
+                    categories_id.append(cursor.lastrowid)
+
+            for store in self.list_of_store:
+                if store.save_data(cursor) == True:
+                    stores_id.append(cursor.lastrowid)
+
+            if len(categories_id) > 0:
+                for category_id in categories_id:
+                    association = (category_id, product_id)
+
+                    cursor.execute("INSERT INTO Association_product_category\
+                            (pfk_category_id, pfk_product_id)\
+                            VALUES (%s, %s)", association)
             
-            cursor.execute("""INSERT INTO Store (name, localisation)\
-                    VALUES (%s, %s)""", store)
+            if len(stores_id) > 0:       
+                for store_id in stores_id:
+                    association = (store_id, product_id)
 
-            stores_id.append(cursor.lastrowid)
+                    cursor.execute("INSERT INTO Association_product_store\
+                            (pfk_store_id, pfk_product_id)\
+                            VALUES (%s, %s)", association)
+
+            
+            connection.commit()    
+            print("product {} added to the database\n".format(self.name))
 
 
-        for category_id in categories_id:
-            association = (category_id, product_id)
+        else:
+            print('data already in database') 
 
-            cursor.execute("""INSERT INTO Association_product_category\
-                    (pfk_category_id, pfk_product_id)\
-                    VALUES (%s, %s)""", association)
-
-        for store_id in stores_id:
-            association = (store_id, product_id)
-
-            cursor.execute("""INSERT INTO Association_product_store\
-                    (pfk_store_id, pfk_product_id)\
-                    VALUES (%s, %s)""", association)
-
-        connection.commit()
         cursor.close()
         connection.close()
-
-
-        print("product {} added to the database\n".format(self.name))
