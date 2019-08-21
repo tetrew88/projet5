@@ -2,7 +2,6 @@
 
 import requests
 import json
-import mysql.connector
 
 from classes.store import *
 from classes.category import *
@@ -162,18 +161,11 @@ class Product:
         return True
 
 
-    def save_data(self):
+    def save_data(self, cursor):
         product_id = 0
         categories_id = []
         stores_id = []
 
-        connection = mysql.connector.connect(
-                host="*****", 
-                user="*****", password = "*****",
-                database = "OpenFoodFact")
-
-        cursor = connection.cursor()
-        
         print("Add {} to the database\n".format(self.name))
 
         cmd_sql = "SELECT * FROM Product WHERE reference = " + self.reference
@@ -222,12 +214,42 @@ class Product:
                             VALUES (%s, %s)", association)
 
             
-            connection.commit()    
             print("product {} added to the database\n".format(self.name))
 
 
         else:
-            print('data already in database') 
+            print('data already in database')
 
-        cursor.close()
-        connection.close()
+
+    def select_product(cursor):
+        """méthode used by user for select a product"""
+
+        user_choice = 0
+        list_of_id= []
+
+        cmd_sql = "SELECT * FROM Product"
+        cursor.execute(cmd_sql)
+
+        database = cursor.fetchall()
+
+
+        for data in database:
+            list_of_id.append(data[0])
+
+
+        while user_choice not in list_of_id:
+            print("Choix du produit\n\n")
+
+            for data in database:
+                print("{}: {}".format(data[0], data[1]))
+
+            user_choice = input("\nEntrer votre choix: ")
+            function.clean_screen()
+
+            try:
+                user_choice = int(user_choice)
+            except:
+                user_choice = 0
+
+
+        return user_choice
