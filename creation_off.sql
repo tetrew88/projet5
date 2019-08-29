@@ -10,6 +10,7 @@ CREATE TABLE Categories(
 	PRIMARY KEY(id)
 )
 ENGINE=INNODB;
+CREATE INDEX index_name ON Categories(name); 
 
 
 CREATE TABLE Store(
@@ -20,11 +21,13 @@ CREATE TABLE Store(
 	PRIMARY KEY(id)
 )
 ENGINE=INNODB;
+CREATE INDEX index_name ON Store(name); 
 
 
 CREATE TABLE Product(
 	id INTEGER NOT NULL AUTO_INCREMENT,
 	url VARCHAR(255),
+	reference VARCHAR(255),
 	name VARCHAR(40),
 	brand VARCHAR(40),
 	ingredients TEXT,
@@ -34,11 +37,14 @@ CREATE TABLE Product(
 	salt VARCHAR(40),
 	sugar VARCHAR(40),
 	allergens TEXT,
-	nutricore INTEGER,
+	nutriscore INTEGER,
 
 	PRIMARY KEY(id)
 )
 ENGINE=INNODB;
+CREATE INDEX index_name ON Product(name);
+CREATE INDEX index_reference ON Product(reference);
+CREATE INDEX index_url ON Product(url);
 
 
 CREATE TABLE Association_product_category(
