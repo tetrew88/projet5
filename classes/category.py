@@ -1,3 +1,4 @@
+import database_function
 import function
 
 class Category:
@@ -13,14 +14,13 @@ class Category:
 
     def save_data(self, cursor):
         """méthode for save data in database"""
+        
+        response = database_function.check_existence_in_database(cursor,
+                "Categories",
+                "name",
+                self.name)
 
-        cmd_sql = "SELECT * FROM Categories WHERE name = '{}'".format(self.name)
-
-        cursor.execute(cmd_sql)
-
-        reponse = cursor.fetchall()
-
-        if len(reponse) == 0:
+        if response == False:
             category = (self.name, self.url)
 
             cursor.execute("INSERT INTO Categories (name, url)\
@@ -43,24 +43,26 @@ class Category:
 
         database = cursor.fetchall()
 
-
-        for data in database:
-            list_of_id.append(data[0])
-
-
-        while user_choice not in list_of_id:
-            print("Choix de la catégorie\n\n")
-            
+        if len(database) > 0:
             for data in database:
-                print("{}: {}".format(data[0], data[1]))
+                list_of_id.append(data[0])
 
-            user_choice = input("\nEntrer votre choix: ")
-            function.clean_screen()
 
-            try:
-                user_choice = int(user_choice)
-            except:
-                user_choice = 0
+            while user_choice not in list_of_id:
+                print("Choix de la catégorie\n\n")
+            
+                for data in database:
+                    print("{}: {}".format(data[0], data[1]))
 
+                user_choice = input("\nEntrer votre choix: ")
+                function.clean_screen()
+
+                try:
+                    user_choice = int(user_choice)
+                except:
+                    user_choice = 0
+
+        else:
+            return False
 
         return user_choice

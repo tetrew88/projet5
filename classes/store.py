@@ -1,3 +1,5 @@
+import database_function
+
 class Store:
     """class designed store by:
         -his city
@@ -14,13 +16,12 @@ class Store:
     def save_data(self, cursor):
         """méthode for save data in database"""
 
-        cmd_sql = "SELECT * FROM Store WHERE name = '{}'".format(self.name)
+        response = database_function.check_existence_in_database(cursor,
+                "Product",
+                "name",
+                self.name)
 
-        cursor.execute(cmd_sql)
-
-        reponse = cursor.fetchall()
-
-        if len(reponse) == 0:
+        if response == False:
             store = (self.name, self.localisation)
 
             cursor.execute("INSERT INTO Store (name, localisation)\
