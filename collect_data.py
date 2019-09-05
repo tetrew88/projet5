@@ -3,11 +3,10 @@
 from classes.product import *
 import mysql.connector
 
-
-host = "*****"
-user = "*****"
-password = "*****"
-database = "*****"
+host = "localhost"
+user = "donovan"
+password = "doni88650"
+database = "OpenFoodFact"
 
 
 main_product_counter = same_category_counter = 0
@@ -25,7 +24,7 @@ connection = mysql.connector.connect(
 cursor = connection.cursor()
 
 
-#main loop(collect 20 product of off database)
+#main loop(collect 20 product in off database)
 while main_product_counter < 20:
     main_product = Product(str(main_reference))
    
@@ -48,7 +47,8 @@ while main_product_counter < 20:
         
         while same_category_counter < 5:
             product2 = Product(str(reference2))
-            
+            print(reference2)
+
             #collect data of the product2
             if product2.collect_data() == True and\
                     reference2 not in match_references:
@@ -58,13 +58,12 @@ while main_product_counter < 20:
                 #search a same category in main_product's categories an product2                    categories
                 for category in main_product.list_of_category:
                     for category2 in product2.list_of_category:
-                        if category.name == category2.name:
+                        if category2.name == category.name:
                             category_match = True
                             break
 
-                    #if a correspondence was fund
                     if category_match == True:
-                        #add the reference to match_reference list
+                        #add the reference2 to match_reference list
                         match_references.append(reference2)
                         
                         #save the data of product2
