@@ -9,10 +9,13 @@ def clean_screen():
 
 
 
-def collecte_data_in_json_dictionnary(dictionnary, key):
+def collect_data_in_json_dictionnary(dictionnary, key, key2 = "NULL"):
 
     try:
-        result = dictionnary[key]
+        if key2 == "NULL":
+            result = dictionnary[key]
+        else:
+            result = dictionnary[key][key2]
     except KeyError:
         return False
 
