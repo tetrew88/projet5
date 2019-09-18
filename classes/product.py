@@ -1,11 +1,10 @@
 #!/usr/bin/python3
 
-import requests
-import json
-
 from classes.store import *
 from classes.category import *
 from classes.store import *
+
+import json
 
 import database_function
 import function
@@ -31,69 +30,55 @@ class Product:
 
 
 
-    def __init__(self, reference):
-        self.reference = reference
-        self.url = 'https://fr.openfoodfacts.org/api/v0/produit/{}.json'.format(
-                self.reference)
+    def __init__(self, identifant = 0, url = "", name = "", brand = "", 
+            ingredients = "", labels = "", saturated_fat = "", fat = "", 
+            salt = "", sugar = "", allergens = "", nutriscore = 0, 
+            category = "", list_of_store = ""):
 
-        self.name = ""
-        self.brand = ""
-        self.ingredients = ""
-        self.labels = ""
-        self.saturated_fat = ""
-        self.fat = ""
-        self.salt = ""
-        self.sugar = ""
-        self.allergens = ""
-        self.nutriscore = ""
+        self.id_number = identifiant
+        self.url = url
+        self.name = name
+        self.brand = brand
+        self.ingredients = ingredients
+        self.labels = labels
+        self.saturated_fat = saturated_fat
+        self.fat = fat
+        self.salt = salt
+        self.sugar = sugar
+        self.allergens = allergens
+        self.nutriscore = nutriscore
 
-        self.list_of_category = []
-        self.list_of_store = []
+        self.category = Category(category)
+        self.stores = list_of_store
 
 
 
-    def collect_data(self):
+    def collect_data(self, data):
         """method for collect the data from openfoodfact"""
         
-        #load data in a dictionnary
-        data = requests.get(self.url)
-        data = json.loads(data.text)
-
-        #if the product was not found in off database
-        if data['status_verbose'] == 'product not found':
-            return False
-
-        data = data['product']
-
-
         #collecte data in the main class
         self.name = function.collect_data_in_json_dictionnary(
-                data, 'product_name_fr')
-
+                data, 'product_name')
         if self.name == False or self.name == 'NULL':
-            self.name = function.collect_data_in_json_dictionnary(
-                    data, 'product_name')
-            if self.name == False or self.name == 'NULL':
-                return False
-            
-
-        self.brand = function.collect_data_in_json_dictionnary(
-                data,'brands')
+            return False
         
+        self.url = function.collect_data_in_json_dictionnary(
+                data, 'url')    
+        if self.url == False:
+            self.url = "NULL"
+
+        self.brand = function.collect_data_in_json_dictionnary(data,'brands')
         if self.brand == False:
             self.brand = 'NULL'
 
 
         self.ingredients = function.collect_data_in_json_dictionnary(
                 data, 'ingredients_text')
-
         if self.ingredients == False:
             self.ingredients = 'NULL'
 
 
-        self.labels = function.collect_data_in_json_dictionnary(
-                data, 'labels')
-
+        self.labels = function.collect_data_in_json_dictionnary(data, 'labels')
         if self.labels == False:
             self.labels = "NULL"
 
@@ -107,81 +92,66 @@ class Product:
 
         self.fat = function.collect_data_in_json_dictionnary(
                 data, 'nutrient_levels', 'fat')
-        
         if self.fat == False:
             self.fat = 'NULL'
 
 
         self.salt = function.collect_data_in_json_dictionnary(
                 data, 'nutrient_levels', 'salt')
-        
         if self.salt == False:
             self.salt = 'NULL'
 
-
         self.sugar = function.collect_data_in_json_dictionnary(
-                data, 'nutrient_levels', 'sugars')
-        
+                data, 'nutrient_levels', 'sugars')        
         if self.sugar == False:
             self.sugar = 'NULL'
 
-
         self.allergens = function.collect_data_in_json_dictionnary(
                 data, 'ingredients_text_with_allergens')
-
         if self.allergens == False:
             self.allergens = 'NULL'
             
-
         self.nutriscore = function.collect_data_in_json_dictionnary(
                 data, 'nutriments', 'nutrition-score-fr')
-        
         if self.nutriscore == False or self.nutriscore == 'NULL':
-            self.nutriscore = function.collect_data_in_json_dictionnary(
-                    data, 'nutriments', 'nutrition-score-uk')
-            if self.nutriscore == False or self.nutriscore == 'NULL':
-                return False
-
-        try:
-            #for each category in categories
-            for category in data['categories'].split(','):
-                #check if the first element of the string was ' '
-                if category[0] == " ":
-                    #if it was, delete the first element
-                    category = category[1:]
-
-                #add each category to the list_of_category
-                self.list_of_category.append(Category(category))
-        except KeyError:
             return False
 
         try:
-            #collect all the data of the store and purchase place
-            for store in data['stores'].split(','):
-                if data['purchase_places'] == "":
-                    self.list_of_store.append(Store("NULL", store))
+            if data['purchase_places'] != "":
+                purchase_places_list = []
+                purchase_place_list = data['purchase_places'].split(",")
+            else:
+                purchase_places_list =  ["NULL"]
 
-                elif data['purchase_places'] != "" and store != "":
-                    self.list_of_store.append(Store(data['purchase_places'], 
-                        store))
-                
-                elif data['purchase_places'] != "" and store == "":
-                    self.list_of_store.append(Store(data['purchase_places'],
-                        "NULL"))
-                
-                elif data['purchase_places'] == "" and store == "":
-                    self.list_of_store.append(Store("NULL" ,"NULL"))
         except KeyError:
-            return False
+            purchase_places_list =  ["NULL"]
 
+        try:
+            if data['stores'] != "":
+                stores_list = []
+                stores_list = data['stores'].split(",")
+            else:
+                stores_list = ['NULL']
+        
+        except KeyError:
+            stores_list = ['NULL']
+
+        for purchase_places in purchase_places_list:
+            for stores in stores_list:
+                if purchase_places[0:1] == " ":
+                    purchase_places = purchase_places[1:len(purchase_places)]
+
+                if stores[0:1] == " ":
+                    stores = stores[1:len(stores)]
+
+                self.stores.append(Store(purchase_places, stores))
 
         return True
 
 
-
-    def save_data(self, cursor):
+    def save_data(self, cursor, connexion):
         product_id = 0
-        categories_id = []
+        category_id = []
         stores_id = []
 
         response = database_function.check_existence_in_database(cursor,
@@ -190,47 +160,45 @@ class Product:
                 self.name)
         
         if response == False:
-            product = (self.reference, self.url, self.name, self.brand, 
+            product = (self.url, self.name, self.brand, 
                     self.ingredients, self.labels, self.saturated_fat,
                     self.fat, self.salt, self.sugar, self.allergens,
                     self.nutriscore)
 
 
-            cursor.execute("INSERT INTO Product(reference, url, name,brand,\
-                    ingredients,labels, saturated_fat, fat,\
-                    salt,sugar, allergens, nutriscore)\
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            cursor.execute("INSERT INTO Product(url, name, brand,\
+                    ingredients, labels, saturated_fat, fat,\
+                    salt, sugar, allergens, nutriscore)\
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     product)
             
-            product_id = cursor.lastrowid
+            connexion.commit()
+            self.id_number = cursor.lastrowid
 
 
-            for category in self.list_of_category:
-                 category.save_data(cursor)
-                 categories_id.append(cursor.lastrowid)
+            self.category.save_data(cursor, connexion)
 
 
-            for store in self.list_of_store:
-                store.save_data(cursor)
-                stores_id.append(cursor.lastrowid)
+            for store in self.stores:
+                store.save_data(cursor, connexion)
 
 
-            if len(categories_id) > 0:
-                for category_id in categories_id:
-                    association = (category_id, product_id)
-
-                    cursor.execute("INSERT INTO Association_product_category\
-                            (pfk_category_id, pfk_product_id)\
-                            VALUES (%s, %s)", association)
+            association = (self.category.id_number, self.id_number)
+            
+            cursor.execute("INSERT INTO Association_product_category\
+                    (pfk_category_id, pfk_product_id)\
+                    VALUES (%s, %s)", association)
+            connexion.commit()
             
 
             if len(stores_id) > 0:       
-                for store_id in stores_id:
-                    association = (store_id, product_id)
+                for store in selfs.stores:
+                    association = (store.id_number, self.id_number)
 
                     cursor.execute("INSERT INTO Association_product_store\
                             (pfk_store_id, pfk_product_id)\
                             VALUES (%s, %s)", association)
+                    connexion.commit()
 
             
             print("product {} added to the database\n".format(self.name))
@@ -244,27 +212,31 @@ class Product:
         """méthode used by user for select a product"""
 
         user_choice = 0
-        list_of_id= []
+        response = list_of_id = database = list_of_product = []
 
-        cmd_sql = "SELECT * FROM Product WHERE id = \
-                (SELECT pfk_product_id\
+        cursor.execute("SELECT pfk_product_id\
                 FROM Association_product_category\
-                WHERE pfk_category_id = {})".format(category)
+                WHERE pfk_category_id = {}".format(category))
 
-        cursor.execute(cmd_sql)
+        response = cursor.fetchall()
+        for line in response:
+            list_of_id.append(line[0])
 
-        database = cursor.fetchall()
+        for identifiant in list_of_id:
+            cursor.execute("SELECT * FROM Product WHERE id = {}"
+                    .format(identifiant[0]))
+
+            database.append(cursor.fetchall()[0])
 
         if len(database) > 0:
             for data in database:
                 list_of_id.append(data[0])
 
-
             while user_choice not in list_of_id:
                 print("Choix du produit\n\n")
 
                 for data in database:
-                    print("{}: {}".format(data[0], data[3]))
+                    print("{}: {}\n".format(data[0], data[2]))
 
                 user_choice = input("\nEntrer votre choix: ")
                 function.clean_screen()
@@ -281,5 +253,44 @@ class Product:
         return user_choice
 
 
-    def find_a_substitute(category, nutriscore):
+    def find_a_substitute(cursor, product, nutriscore):
+        response = list_of_id = list_of_substitue = list_of_store = []
+
+        cursor.execute("SELECT pfk_product_id\
+                FROM Association_product_category\
+                WHERE pfk_category_id = {}".format(product.category.id))
+
+        response = cursor.fetchall()
+        for line in response:
+            list_of_id.append(line[0])
+
+        x = 0
+        for line in list_of_id:
+            cursor.execute(cursor.execute("SELECT * FROM Product WHERE id = {}"
+                .format(identifiant[0]))
+
+                response = cursor.fetchall()
+
+                for data in response:
+                    if data[0] != product.id and data[11] > product.nutriscore:
+                        cursor.execute("SELECT pfk_store_id\
+                                FROM Association_product_store\
+                                WHERE pfk_product_id = {}".format(line[0]))
+
+                        response = cursor.fetchall()
+
+                        for element in response:
+                            cursor.execute("SELECT * FROM Store\
+                                    WHERE id = {}".format(element[0])
+                        
+                            list_of_store.append(Store(element[0], element[1],
+                                element[2]))
+
+                        list_of_substitute.append(
+                            Product(data[0], data[1],  data[2], data[3], 
+                                data[4], data[5], data[6], data[7], data[8],
+                                data[9], data[10], data[11],
+                                product.category, 
+                                list_of_store)
+        print(list_of_id)
         pass

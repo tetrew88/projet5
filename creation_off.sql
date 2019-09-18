@@ -15,20 +15,19 @@ CREATE INDEX index_name ON Categories(name);
 
 CREATE TABLE Store(
 	id INTEGER NOT NULL AUTO_INCREMENT,
-	localisation VARCHAR(40),
 	name VARCHAR(40),
+	localisation VARCHAR(40),
 
 	PRIMARY KEY(id)
 )
 ENGINE=INNODB;
-CREATE INDEX index_name ON Store(name); 
+CREATE INDEX index_name ON Store(localisation); 
 
 
 CREATE TABLE Product(
 	id INTEGER NOT NULL AUTO_INCREMENT,
 	url VARCHAR(255),
-	reference VARCHAR(255),
-	name VARCHAR(40),
+	name VARCHAR(255),
 	brand VARCHAR(40),
 	ingredients TEXT,
 	labels TEXT,
@@ -43,7 +42,6 @@ CREATE TABLE Product(
 )
 ENGINE=INNODB;
 CREATE INDEX index_name ON Product(name);
-CREATE INDEX index_reference ON Product(reference);
 CREATE INDEX index_url ON Product(url);
 
 

@@ -6,13 +6,14 @@ class Category:
         -her name
         -her url"""
 
-    def __init__(self, name):
+    def __init__(self, identifiant = 0, name):
         """constructor of the class category"""
+        self.id_number = identifiant
         self.name = name
         self.url = 'https://fr.openfoodfacts.org/categorie/' + self.name
 
 
-    def save_data(self, cursor):
+    def save_data(self, cursor, connection):
         """méthode for save data in database"""
         
         response = database_function.check_existence_in_database(cursor,
@@ -20,16 +21,22 @@ class Category:
                 "name",
                 self.name)
 
+
         if response == False:
             category = (self.name, self.url)
 
             cursor.execute("INSERT INTO Categories (name, url)\
                     VALUES (%s, %s)", category)
-            
-            return True
+
+            connection.commit() 
+            self.id_number = cursor.lastrowid
+
 
         else:
-            return False
+            cursor.execute("SELECT id FROM Categories\
+                    WHERE name = '{}'".format(self.name))
+
+            self.id_number = cursor.fetchall()[0][0]
 
 
     def select_a_category(cursor):
