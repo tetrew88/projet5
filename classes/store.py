@@ -6,7 +6,7 @@ class Store:
         -his state
         -his name"""
 
-    def __init__(self, identifiant = 0,localisation, name):
+    def __init__(self,localisation, name, identifiant = 0):
         """constructor of the classe store"""
         self.id_number = identifiant
         self.localisation = localisation

@@ -30,7 +30,7 @@ class Product:
 
 
 
-    def __init__(self, identifant = 0, url = "", name = "", brand = "", 
+    def __init__(self, identifiant = 0, url = "", name = "", brand = "", 
             ingredients = "", labels = "", saturated_fat = "", fat = "", 
             salt = "", sugar = "", allergens = "", nutriscore = 0, 
             category = "", list_of_store = ""):
@@ -48,7 +48,7 @@ class Product:
         self.allergens = allergens
         self.nutriscore = nutriscore
 
-        self.category = Category(category)
+        self.category = category
         self.stores = list_of_store
 
 
@@ -212,34 +212,29 @@ class Product:
         """méthode used by user for select a product"""
 
         user_choice = 0
-        response = list_of_id = database = list_of_product = []
+        response = database = list_of_product = []
 
-        cursor.execute("SELECT pfk_product_id\
-                FROM Association_product_category\
-                WHERE pfk_category_id = {}".format(category))
 
-        response = cursor.fetchall()
-        for line in response:
-            list_of_id.append(line[0])
+        cursor.execute("SELECT * FROM Product WHERE id IN\
+                (SELECT pfk_product_id FROM Association_product_category\
+                WHERE pfk_category_id = {})".format(category.id_number))
 
-        for identifiant in list_of_id:
-            cursor.execute("SELECT * FROM Product WHERE id = {}"
-                    .format(identifiant[0]))
-
-            database.append(cursor.fetchall()[0])
+        database = cursor.fetchall()
+        print(database)
 
         if len(database) > 0:
-            for data in database:
-                list_of_id.append(data[0])
+            for response in database:
+                list_of_product.append(response[0])
 
-            while user_choice not in list_of_id:
+            while user_choice not in list_of_product:
+                function.clean_screen()
+
                 print("Choix du produit\n\n")
 
                 for data in database:
                     print("{}: {}\n".format(data[0], data[2]))
 
                 user_choice = input("\nEntrer votre choix: ")
-                function.clean_screen()
 
                 try:
                     user_choice = int(user_choice)
@@ -249,48 +244,47 @@ class Product:
         else:
             return False
 
+        cursor.execute("SELECT * FROM Product WHERE id = {}".format(
+            user_choice))
+        
+        data = cursor.fetchall()[0]
 
-        return user_choice
+        return Product(data[0], data[1],  data[2], data[3],
+                        data[4], data[5], data[6], data[7], data[8],
+                        data[9], data[10], data[11], category)
 
 
-    def find_a_substitute(cursor, product, nutriscore):
-        response = list_of_id = list_of_substitue = list_of_store = []
+    def find_a_substitute(self, cursor):
+        response = list_of_substitute = list_of_store = []
 
-        cursor.execute("SELECT pfk_product_id\
-                FROM Association_product_category\
-                WHERE pfk_category_id = {}".format(product.category.id))
+        cursor.execute("SELECT * FROM Product WHERE id IN\
+                (SELECT pfk_product_id FROM Association_product_category\
+                WHERE pfk_category_id = {})".format(self.category.id_number))
 
         response = cursor.fetchall()
-        for line in response:
-            list_of_id.append(line[0])
 
-        x = 0
-        for line in list_of_id:
-            cursor.execute(cursor.execute("SELECT * FROM Product WHERE id = {}"
-                .format(identifiant[0]))
+        for data in response:
+            if data[0] != self.id_number and data[11] > self.nutriscore:
+                cursor.execute("SELECT pfk_store_id\
+                        FROM Association_product_store\
+                        WHERE pfk_product_id = {}".format(self.id_number))
 
                 response = cursor.fetchall()
 
-                for data in response:
-                    if data[0] != product.id and data[11] > product.nutriscore:
-                        cursor.execute("SELECT pfk_store_id\
-                                FROM Association_product_store\
-                                WHERE pfk_product_id = {}".format(line[0]))
-
-                        response = cursor.fetchall()
-
-                        for element in response:
-                            cursor.execute("SELECT * FROM Store\
-                                    WHERE id = {}".format(element[0])
+                for element in response:
+                    cursor.execute("SELECT * FROM Store\
+                        WHERE id IN (SELECT pfk_store_id\
+                        FROM Association_product_store\
+                        WHERE pfk_product_id = {}".format(self.id_number))
                         
-                            list_of_store.append(Store(element[0], element[1],
-                                element[2]))
+                    list_of_store.append(Store(element[0], element[1],
+                        element[2]))
 
-                        list_of_substitute.append(
-                            Product(data[0], data[1],  data[2], data[3], 
-                                data[4], data[5], data[6], data[7], data[8],
-                                data[9], data[10], data[11],
-                                product.category, 
-                                list_of_store)
-        print(list_of_id)
-        pass
+                list_of_substitute.append(
+                    Product(data[0], data[1],  data[2], data[3], 
+                        data[4], data[5], data[6], data[7], data[8],
+                        data[9], data[10], data[11],
+                        self.category, 
+                        list_of_store))
+
+        return list_of_substitute

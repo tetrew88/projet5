@@ -44,7 +44,7 @@ if menu_choice == 1:
         if product_choice == False:
             print("Any data")
         else:
-            Product.find_a_substitute(cursor, category_choice, product_choice)
+            product_choice.find_a_substitute(cursor)
 
 elif menu_choice == 2:
     pass

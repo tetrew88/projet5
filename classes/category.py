@@ -6,7 +6,7 @@ class Category:
         -her name
         -her url"""
 
-    def __init__(self, identifiant = 0, name):
+    def __init__(self, name, identifiant = 0):
         """constructor of the class category"""
         self.id_number = identifiant
         self.name = name
@@ -72,4 +72,10 @@ class Category:
         else:
             return False
 
-        return user_choice
+        cursor.execute("SELECT * FROM Categories WHERE id = {}".format(
+            user_choice))
+
+        data = cursor.fetchall()[0]
+        print(data)
+
+        return Category(data[1], data[0])
