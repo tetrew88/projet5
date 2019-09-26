@@ -16,10 +16,13 @@ def collect_data_in_json_dictionnary(dictionnary, key, key2 = "NULL"):
             result = dictionnary[key]
         else:
             result = dictionnary[key][key2]
-    except KeyError:
-        return False
 
-    if result == "":
+
+        if result == "":
+            result = "NULL"
+
+
+    except KeyError:
         result = "NULL"
 
     return result

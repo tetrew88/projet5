@@ -79,3 +79,8 @@ class Category:
         print(data)
 
         return Category(data[1], data[0])
+
+
+    def display(self):
+        print("    nom: " + self.name)
+        print("    url: " + self.url)

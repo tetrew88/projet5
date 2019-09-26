@@ -40,4 +40,9 @@ class Store:
         else:
             return False
 
+    
+    def display(self):
+        print("name: " + self.name)
+        print("localisation: " + self.localisation)
+
 

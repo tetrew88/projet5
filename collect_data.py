@@ -36,7 +36,8 @@ for category in categories_list:
         data = Product()
         
         if data.collect_data(product, category):
-            data.save_data(cursor, connection)
+            if data.name != "NULL":
+                data.save_data(cursor, connection)
 
 cursor.close()
 connection.close()

@@ -2,9 +2,12 @@
 
 import function
 import mysql.connector
+import sys
 
 from classes.category import *
 from classes.product import *
+
+sys.setrecursionlimit(10000)
 
 host = "localhost"
 user = "donovan"
@@ -19,6 +22,9 @@ connection = mysql.connector.connect(
         host=host,user=user, password = password, database = database)
 
 cursor = connection.cursor()
+
+
+function.clean_screen()
 
 while menu_choice < 1 or menu_choice > 3:
     print("Menu:\n\n")
@@ -44,7 +50,11 @@ if menu_choice == 1:
         if product_choice == False:
             print("Any data")
         else:
-            product_choice.find_a_substitute(cursor)
+            substitute_list = product_choice.find_substitute(cursor)
+
+            substitute = Product.select_a_substitute(substitute_list)
+
+            substitute.display()
 
 elif menu_choice == 2:
     pass
