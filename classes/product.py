@@ -164,8 +164,8 @@ class Product:
             self.category.save_data(cursor, connexion)
 
 
-            for store_data in self.stores:
-                store_data.save_data(cursor, connexion)
+            for stores in self.stores:
+                stores.save_data(cursor, connexion)
 
 
             association = (self.category.id_number, self.id_number)
@@ -195,10 +195,81 @@ class Product:
             return False
 
 
+    def collect_product_from_database(cursor, column = "NULL", value = "NULL"):
+        if column != "NULL" and value != "NULL":
+            try:
+                cursor.execute('SELECT * FROM Product WHERE {} = {}'.format(
+                    column, value))
+            except:
+                print("\nprobleme lors de la recuperation du produit\n")
+                return False
+
+            list_of_data = cursor.fetchall()
+
+            #load product
+            x = 0
+            if len(list_of_data) > 0:
+                for data in list_of_data:
+                    product = Product(data[0], data[1], data[2], data[3], 
+                            data[4], data[5], data[6], data[7], data[8], 
+                            data[9], data[10],data[11], Category("", "") , [])
+
+                #load category data
+                try:
+                    cursor.execute('SELECT * FROM Categories WHERE id =\
+                            (SELECT pfk_category_id FROM\
+                            Association_product_category\
+                            WHERE pfk_product_id = {})'.format(
+                                product.id_number))
+
+                    category = cursor.fetchall()[0]
+                except:
+                    print("\nprobleme lors de la récupération de la\
+                            categorie\n")
+                    return False
+
+                if len(category) > 0:
+                    product.category = Category(category[1], category[2])
+                    product.category.id_number = category[0]
+                else:
+                    print("\naucune category trouver pour ce produit\n")
+                    return False
+
+
+                #load store data
+                store_list = []
+                try:
+                    cursor.execute('SELECT * FROM Store\
+                            WHERE id IN (SELECT pfk_store_id\
+                            FROM Association_product_store\
+                            WHERE pfk_product_id = {})'.format(
+                                product.id_number))
+                    store_list = cursor.fetchall()
+
+                except:
+                    print("\nerreur lors de la récuperation des point de vente\
+                            du produit\n")
+                    return False
+
+                if len(store_list) > 0:
+                    for store in store_list:
+                        product.stores.append(Store(store[2], store[1], store[0]
+                            ))
+
+                else:
+                    product.stores.append(Store("NULL", "NULL", 0))
+
+        else:
+            print("\nproduit introuvable\n")
+            return False
+
+        return product
+
+
+
 
     def select_a_product(cursor, category):
         """méthode used by user for select a product"""
-
         user_choice = 0
         list_of_product = []
 
@@ -207,20 +278,18 @@ class Product:
             cursor.execute("SELECT * FROM Product WHERE id IN\
                     (SELECT pfk_product_id FROM Association_product_category\
                     WHERE pfk_category_id = {})".format(category.id_number))
-
         except:
             return False
 
         list_of_product = cursor.fetchall()
 
-        if len(list_of_product) > 0:
-            
+        if len(list_of_product) > 0:         
             while user_choice < 1 or user_choice > len(list_of_product) + 1:
                 print("Choix du produit\n\n")
                 
                 x=0
-                for product_data in list_of_product:
-                    print("{}: {}".format(x+1, product_data[2]))
+                for product in list_of_product:
+                    print("{}: {}".format(x+1, product[2]))
                     x+=1
 
                 user_choice = input("\nEntrer votre hoix: ")
@@ -233,52 +302,31 @@ class Product:
                 function.clean_screen()
 
 
-        cursor.execute("SELECT * FROM Product WHERE id = {}".format(
-            list_of_product[user_choice - 1][0]))
-        
-        data = cursor.fetchall()[0]
+        product_choice = Product.collect_product_from_database(cursor,
+                    'id', list_of_product[user_choice - 1][0])
 
-        return Product(data[0], data[1],  data[2], data[3],
-                        data[4], data[5], data[6], data[7], data[8],
-                        data[9], data[10], data[11], category)
+        return product_choice
 
 
 
     def find_substitute(self, cursor):
-        response = list_of_substitute = list_of_store = []
+        list_of_id = list_of_substitute = []
 
-        cursor.execute("SELECT * FROM Product WHERE id IN\
+        cursor.execute("SELECT id FROM Product WHERE id IN\
                 (SELECT pfk_product_id FROM Association_product_category\
                 WHERE pfk_category_id = {})".format(self.category.id_number))
 
-        product_response = cursor.fetchall()
+        list_of_id = cursor.fetchall()
 
 
-        for data in product_response:
-            cursor.execute("SELECT * FROM Store\
-                    WHERE id IN (SELECT pfk_store_id\
-                    FROM Association_product_store\
-                    WHERE pfk_product_id = {})".format(data[0]))
-
-            store_response = cursor.fetchall()
-
-                        
-            for store_data in store_response:
-                list_of_store.append(Store(store_data[0], store_data[1],
-                    store_data[2]))
-            print(list_of_substitute)
-
-            substitute = Product(data[0], data[1],  data[2], data[3], 
-                    data[4], data[5], data[6], data[7], data[8],
-                    data[9], data[10], data[11],
-                    self.category, 
-                    list_of_store)
+        for id_number in list_of_id:
+            substitute = Product.collect_product_from_database(cursor,
+                    'id', id_number[0])
 
 
             if substitute.nutriscore >= self.nutriscore and\
                     substitute.id_number != self.id_number:
                         list_of_substitute.append(substitute)
-
 
 
         return list_of_substitute
@@ -288,7 +336,7 @@ class Product:
     def select_a_substitute(substitute_list):
         user_choice = 0
       
-        while user_choice < 1 or user_choise > len(substitute_list) + 1:
+        while user_choice < 1 or user_choice > len(substitute_list) + 1:
             print("Choix du substitut\n\n")
             
             x = 0
@@ -322,12 +370,59 @@ class Product:
         print("Graisse: " + self.fat)
         print("Sel: " + self.salt)
         print("Sucre: " + self.sugar)
-        print("Allergène: " + self.allergens)
-        print("Nutriscore: " + str(self.nutriscore))
+        
+        print("\nAllergène: " + self.allergens)
+        
+        print("\nNutriscore: " + str(self.nutriscore))
 
         print("\n\ncatégorie:")
         self.category.display()
         
         print("\n\nPoint de vente:")
-        print(self.stores)
+        for store in self.stores:
+            store.display()
+            print("\n")
+
+
+    def save_substitute(self, cursor, connection, product):
+        user_choice = 0
+        association = (product.id_number, self.id_number)
+
+        while user_choice < 1 or user_choice > 2:
+            print("voulez vous enregistrer le substitut ?\n")
+            print("1.Oui")
+            print("2.Non\n")
+
+            user_choice = input("Entrer votre choix: ")
+
+            try:
+                user_choice = int(user_choice)
+            except:
+                user_choice = 0
+        
+        if user_choice == 1:
+            response = database_function.check_existence_in_database(cursor,
+                "Favorites",
+                "pfk_product_id",
+                product.id_number)
+
+            response2 = database_function.check_existence_in_database(cursor,
+                "Favorites",
+                "pfk_substitute_id",
+                self.id_number)
+
+            if response == False or response2 == False:
+                try:
+                    cursor.execute("INSERT INTO Favorites\
+                            (pfk_product_id, pfk_substitute_id)\
+                            VALUES (%s, %s)", association)
+                    connection.commit()
+                    print("\nFavori ajouter avec succes\n")
+            
+                except:
+                    print("\nErreur lors de l'enregistrement\n")
+                    return False
+
+            else:
+                print("\nLe favori existe déja\n")
 

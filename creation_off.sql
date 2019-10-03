@@ -64,10 +64,10 @@ ENGINE=INNODB;
 
 
 CREATE TABLE Favorites(
-	id INTEGER NOT NULL,
+	id INTEGER NOT NULL AUTO_INCREMENT,
 
-	fk_product_id INTEGER,
-	fk_surrogate_id INTEGER,
+	pfk_product_id INTEGER,
+	pfk_substitute_id INTEGER,
 
 	PRIMARY KEY(id)
 )
@@ -82,5 +82,5 @@ ADD FOREIGN KEY (pfk_product_id) REFERENCES Product(id),
 ADD FOREIGN KEY (pfk_store_id) REFERENCES Store(id);
 
 ALTER TABLE Favorites
-ADD FOREIGN KEY (fk_product_id) REFERENCES Product(id),
-ADD FOREIGN KEY (fk_surrogate_id) REFERENCES Product(id);
+ADD FOREIGN KEY (pfk_product_id) REFERENCES Product(id),
+ADD FOREIGN KEY (pfk_substitute_id) REFERENCES Product(id);

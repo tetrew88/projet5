@@ -28,7 +28,7 @@ class Store:
 
 
         if response == False or response2 == False:
-            store = (self.localisation, self.name)
+            store = (self.name, self.localisation)
 
             cursor.execute("INSERT INTO Store (name, localisation)\
                     VALUES (%s, %s)", store)
@@ -42,7 +42,7 @@ class Store:
 
     
     def display(self):
-        print("name: " + self.name)
-        print("localisation: " + self.localisation)
+        print("    name: " + self.name)
+        print("    localisation: " + self.localisation)
 
 
