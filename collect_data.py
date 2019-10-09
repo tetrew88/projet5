@@ -25,7 +25,7 @@ cursor = connection.cursor()
 
 
 for category in categories_list:
-    url = "https://fr.openfoodfacts.org/cgi/search.pl?categories={}&action=process&page_size=1000&json=1".format(category)
+    url = "https://fr.openfoodfacts.org/cgi/search.pl?categories={}&action=process&page_size=100&json=1".format(category)
 
     result = requests.get(url)
     result = json.loads(result.text)

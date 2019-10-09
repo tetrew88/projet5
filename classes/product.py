@@ -361,17 +361,17 @@ class Product:
     def display(self):
         function.clean_screen()
 
-        print("Nom: " + self.name)
-        print("Url: " + self.url)
-        print("\nMarque: " + self.brand)
-        print("Ingrédient: " + self.ingredients)
-        print("Labels: " + self.labels)
-        print("Graisse saturé: " + self.saturated_fat)
-        print("Graisse: " + self.fat)
-        print("Sel: " + self.salt)
-        print("Sucre: " + self.sugar)
+        print("Nom: " + str(self.name))
+        print("Url: " + str(self.url))
+        print("\nMarque: " + str(self.brand))
+        print("Ingrédient: " + str(self.ingredients))
+        print("Labels: " + str(self.labels))
+        print("Graisse saturé: " + str(self.saturated_fat))
+        print("Graisse: " + str(self.fat))
+        print("Sel: " + str(self.salt))
+        print("Sucre: " + str(self.sugar))
         
-        print("\nAllergène: " + self.allergens)
+        print("\nAllergène: " + str(self.allergens))
         
         print("\nNutriscore: " + str(self.nutriscore))
 

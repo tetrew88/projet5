@@ -66,8 +66,7 @@ while continuer:
 
     elif menu_choice == 2:
         favorites_list = Favorite.collecte_favorites_from_database(cursor)
-        for favorites in favorites_list:
-            print(favorites)
+        Favorite.display_favorites(favorites_list)
 
     else:
         quit()
