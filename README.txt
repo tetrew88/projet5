@@ -1,6 +1,6 @@
 Projet5
 
-Excercice pour la formation dévellopeur d'application python sur openclassroom.
+Excercice pour la formation dévelopeur d'application python sur openclassroom.
 
 liens du site: https://openclassrooms.com/
 liens de la formation: https://openclassrooms.com/fr/paths/68-developpeur-dapplication-python
