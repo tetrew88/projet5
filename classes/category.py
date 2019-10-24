@@ -16,35 +16,44 @@ class Category:
     def save_data(self, cursor, connection):
         """méthode for save data in database"""
         
+        #check if the category is already in database
         response = database_function.check_existence_in_database(cursor,
                 "Categories",
                 "name",
                 self.name)
 
-
+        
+        #if the category is not already in database
         if response == False:
             category = (self.name, self.url)
 
+            #insert the data in database
             cursor.execute("INSERT INTO Categories (name, url)\
                     VALUES (%s, %s)", category)
 
-            connection.commit() 
+            #apply the change
+            connection.commit()
+
+            #collect the id of the category
             self.id_number = cursor.lastrowid
 
-
+        #else
         else:
+            #collect the id of the category
             cursor.execute("SELECT id FROM Categories\
                     WHERE name = '{}'".format(self.name))
 
             self.id_number = cursor.fetchall()[0][0]
 
 
+    #methode for the user can select a category
     def select_a_category(cursor):
         """méthode used by user for select a category"""
 
         user_choice = 0
         list_of_id= []
 
+        #select all the category in database
         cmd_sql = "SELECT * FROM Categories"
         cursor.execute(cmd_sql)
 
@@ -54,7 +63,8 @@ class Category:
             for data in database:
                 list_of_id.append(data[0])
 
-
+            
+            #user choise a category
             while user_choice not in list_of_id:
                 print("Choix de la catégorie\n\n")
             
@@ -82,5 +92,6 @@ class Category:
 
 
     def display(self):
+        #method for display the information of category
         print("    nom: " + self.name)
         print("    url: " + self.url)

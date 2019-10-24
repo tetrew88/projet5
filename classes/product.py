@@ -34,7 +34,7 @@ class Product:
             ingredients = "", labels = "", saturated_fat = "", fat = "", 
             salt = "", sugar = "", allergens = "", nutriscore = 0, 
             category = "", list_of_store = []):
-
+        #constructor of the class
 
         self.id_number = identifiant
         self.url = url
@@ -136,15 +136,18 @@ class Product:
 
 
     def save_data(self, cursor, connexion):
+        #method for save data in database
+
         product_id = 0
         category_id = []
 
+        #check if the product is already in database
         response = database_function.check_existence_in_database(cursor,
                 "Product",
                 "name",
                 self.name)
         
-
+        #if the product wasn't in database
         if response == False:
             product = (self.url, self.name, self.brand, 
                     self.ingredients, self.labels, self.saturated_fat,
@@ -152,35 +155,45 @@ class Product:
                     self.nutriscore)
 
 
+            #insertion request
             cursor.execute("INSERT INTO Product(url, name, brand,\
                     ingredients, labels, saturated_fat, fat,\
                     salt, sugar, allergens, nutriscore)\
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     product)
             
+            #aplly change
             connexion.commit()
+
+            #filling id
             self.id_number = cursor.lastrowid
 
             self.category.save_data(cursor, connexion)
 
-
+            
+            #save the stores datas in database
             for stores in self.stores:
                 stores.save_data(cursor, connexion)
 
 
+            #save the association product/category in database
             association = (self.category.id_number, self.id_number)
             
+            #insertion request
             cursor.execute("INSERT INTO Association_product_category\
                     (pfk_category_id, pfk_product_id)\
                     VALUES (%s, %s)", association)
 
+            #apply change
             connexion.commit()
             
        
+            #save the association product/store in database
             for stores in self.stores:
                 if stores.id_number != 0:
                     association = (stores.id_number, self.id_number)
 
+                    #insertion request
                     cursor.execute("INSERT INTO Association_product_store\
                             (pfk_store_id, pfk_product_id)\
                             VALUES (%s, %s)", association)
@@ -196,8 +209,11 @@ class Product:
 
 
     def collect_product_from_database(cursor, column = "NULL", value = "NULL"):
+        #method for collect product in database
+
         if column != "NULL" and value != "NULL":
             try:
+                #request
                 cursor.execute('SELECT * FROM Product WHERE {} = {}'.format(
                     column, value))
             except:
@@ -208,6 +224,8 @@ class Product:
 
             #load product
             x = 0
+
+            #if product was fund
             if len(list_of_data) > 0:
                 for data in list_of_data:
                     product = Product(data[0], data[1], data[2], data[3], 
@@ -259,6 +277,7 @@ class Product:
                 else:
                     product.stores.append(Store("NULL", "NULL", 0))
 
+        #if product wasn't found
         else:
             print("\nproduit introuvable\n")
             return False
@@ -310,8 +329,10 @@ class Product:
 
 
     def find_substitute(self, cursor):
+        #method for searched a substitute
         list_of_id = list_of_substitute = []
 
+        #request
         cursor.execute("SELECT id FROM Product WHERE id IN\
                 (SELECT pfk_product_id FROM Association_product_category\
                 WHERE pfk_category_id = {})".format(self.category.id_number))
@@ -324,6 +345,8 @@ class Product:
                     'id', id_number[0])
 
 
+            """check if the substitute have a best 
+            or equal nutriscore to the product"""
             if substitute.nutriscore >= self.nutriscore and\
                     substitute.id_number != self.id_number:
                         list_of_substitute.append(substitute)
@@ -334,6 +357,8 @@ class Product:
 
 
     def select_a_substitute(substitute_list):
+        #method for select a substitute
+
         user_choice = 0
       
         while user_choice < 1 or user_choice > len(substitute_list) + 1:
@@ -359,6 +384,7 @@ class Product:
 
 
     def display(self):
+        #method for display the information of product
         function.clean_screen()
 
         print("Nom: " + str(self.name))
@@ -385,6 +411,8 @@ class Product:
 
 
     def save_substitute(self, cursor, connection, product):
+        #method for save substitute
+
         user_choice = 0
         association = (product.id_number, self.id_number)
 
