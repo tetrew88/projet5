@@ -12,9 +12,12 @@ créateur:
 Avancé du projet:
   -Terminé
 
+Base de donnée:
+  -MySql
+
 Langages utilisés:
   -Python
-  -MySql
+  -Sql
   
 Librairies:
   -requests
@@ -35,7 +38,17 @@ Classe composant le programme:
 Composition du projet:
   -collect_data.py: Script permettant de récuperer des aliments sur openfoodfact(100 par catégorie de produit) et les stocker dans une base de donnée mySql.
   
-  -main.py: Script permettant a l'utilisateur de trouver un substitut plus saint a un de ses produit favori via divers menu de selection,
-            l'utilisateur peut aussi enregistrer un substitut qui lui plait dans la base de donnée mySql affin de pouvoir le retrouver plus tard.
+  -main.py: 
+        Script permettant a l'utilisateur de trouver un substitut plus saint a un de ses produit favori via divers menu de                 selection,
+        l'utilisateur peut aussi enregistrer un substitut qui lui plait dans la base de donnée mySql affin de pouvoir le retrouver plus tard.
             
-  -creation_off.sql: Script de création de la base de donnée.          
+  -creation_off.sql: Script de création de la base de donnée.
+  
+  
+  
+Marche a suivre:
+  1)Commencer par créer la base de donnée a l'aide de creation_off.sql dans mysql.
+  2)Modifier les information de connection a la base de donnée dans collect_data.py (ligne 9 a 11).
+  3)Lancer le script collect_data.py affin de remplir la base de donnée.
+  4)Modifier les information de connection a la base de donnée dans main.py (ligne 12 a 14).
+  5)lancer le script main.py (programme principale).
